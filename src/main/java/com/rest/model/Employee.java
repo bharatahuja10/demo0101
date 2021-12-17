@@ -16,6 +16,18 @@ public class Employee {
 	private String empDept;
 	private String empTech;
 
+	public Employee() {
+		super();
+	}
+
+	public Employee(int empId, String empName, String empDept, String empTech) {
+		super();
+		this.empId = empId;
+		this.empName = empName;
+		this.empDept = empDept;
+		this.empTech = empTech;
+	}
+
 	public int getEmpId() {
 		return empId;
 	}
