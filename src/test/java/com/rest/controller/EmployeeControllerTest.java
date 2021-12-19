@@ -1,7 +1,11 @@
 package com.rest.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
@@ -89,4 +93,35 @@ class EmployeeControllerTest {
 
 		assertThat(actualJsonResponse).isEqualToIgnoringWhitespace(expectedJsonResponse);
 	}
+	
+	//Testing POST Employee Method
+	@Test
+	public void testCreateNewEmployee() throws Exception {
+		Employee newEmp = new Employee();
+		newEmp.setEmpName("Rohit");
+		newEmp.setEmpDept("Production");
+		newEmp.setEmpTech("Python");
+		
+		Employee savedEmp = new Employee(1,"Rohit","Production","Python");
+		
+		//USE LOMBOK LIBRARY TO IMPLEMENT EQUALS AND HASHCODE METHOD AUTOMATICALLY -> https://stackabuse.com/guide-to-unit-testing-spring-boot-rest-apis/
+		//Don't use Mockito.when(empRepo.save(newEmp) as it will return null ID in EmployeeController.java -> https://mkyong.com/spring-boot/spring-mockito-unable-to-mock-save-method/ 
+//		Mockito.when(empRepo.save(newEmp)).thenReturn(savedEmp);
+		Mockito.when(empRepo.save(any(Employee.class))).thenReturn(savedEmp);
+
+		
+		String url = "/employee";
+		mockMvc.perform(
+				post(url)
+				.contentType("application/json")
+				.content(objectMapper.writeValueAsString(newEmp))
+				).andExpect(status().isOk())
+				.andExpect(content().json("1"));
+//		String actualJsonResponse = mvcResult.getResponse().getContentAsString();
+		
+//		String expectedJsonResponse = "1";
+//		assertEquals(expectedJsonResponse, actualJsonResponse);
+//		System.out.println(actualJsonResponse);
+	}
 }
+//
