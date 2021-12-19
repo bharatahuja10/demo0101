@@ -36,17 +36,21 @@ public class EmployeeController {
 				.orElseThrow(() -> new ResourceNotFoundException(StaticStrings.Errors.errorNotFound(id)));
 	}
 
-	@PostMapping(path = "/employee", consumes = { "application/json" })
-	public ResponseEntity<Employee> postEmployee(@RequestBody Employee emp) { // NULL ERROR in db: Use Request Body
+	@PostMapping(path = "/employee", produces = { "application/json", "application/xml" }, consumes = { "application/json" })
+	public String postEmployee(@RequestBody Employee emp) { // NULL ERROR in db: Use Request Body  //return type can be ResponseEntity<Employee>
 		if (emp.getEmpName() == null || emp.getEmpDept() == null || emp.getEmpTech() == null) {
 //			return ResponseEntity.badRequest().build();
 			throw new IncompleteEmployeeDataException(StaticStrings.Errors.errorEmpDetails);
 		}
-		System.out.println("HERE->" + emp.getEmpDept());
-		System.out.println(emp.getEmpDept() == null);
-		System.out.println(emp.getEmpDept());
-		this.empRepo.save(emp);
-		return ResponseEntity.ok().build();
+//		System.out.println("HERE->" + emp.getEmpDept());
+//		System.out.println(emp.getEmpDept() == null);
+//		System.out.println(emp.getEmpDept());
+		Employee savedEmployee = empRepo.save(emp);
+		System.out.println(savedEmployee);
+//		return ResponseEntity.ok().build(); 
+//		System.out.println(savedEmployee);
+		return String.valueOf(savedEmployee.getEmpId());
+		
 	}
 
 //	@DeleteMapping("/employee/{id}")
