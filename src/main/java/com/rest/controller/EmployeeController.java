@@ -42,9 +42,9 @@ public class EmployeeController {
 //			return ResponseEntity.badRequest().build();
 			throw new IncompleteEmployeeDataException(StaticStrings.Errors.errorEmpDetails);
 		}
-		System.out.println("HERE->" + emp.getEmpDept());
-		System.out.println(emp.getEmpDept() == null);
-		System.out.println(emp.getEmpDept());
+//		System.out.println("HERE->" + emp.getEmpDept());
+//		System.out.println(emp.getEmpDept() == null);
+//		System.out.println(emp.getEmpDept());
 		Employee savedEmp = this.empRepo.save(emp);
 		return String.valueOf(savedEmp.getEmpId());
 	}

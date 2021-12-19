@@ -1,10 +1,11 @@
 package com.rest.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestReporter;
@@ -54,6 +56,7 @@ class EmployeeControllerTest {
 	}
 
 	@Test
+	@DisplayName("Get ALL Employees")
 	public void testAllEmployeeList() throws Exception {
 		List<Employee> empList = new ArrayList<>();
 		empList.add(new Employee(1, "Abhinav", "Programmer", "Python"));
@@ -76,6 +79,7 @@ class EmployeeControllerTest {
 	}
 
 	@Test
+	@DisplayName("Get Employee By ID")
 	public void testGetEmployeeById() throws Exception {
 		Optional<Employee> employee = Optional.of(new Employee(1, "Abhinav", "Programming", "Python"));
 		String employeeId = "1";
@@ -96,6 +100,7 @@ class EmployeeControllerTest {
 	
 	//Testing POST Employee Method
 	@Test
+	@DisplayName("Create New Employee")
 	public void testCreateNewEmployee() throws Exception {
 		Employee newEmp = new Employee();
 		newEmp.setEmpName("Rohit");
@@ -104,10 +109,8 @@ class EmployeeControllerTest {
 		
 		Employee savedEmp = new Employee(1,"Rohit","Production","Python");
 		
-		//USE LOMBOK LIBRARY TO IMPLEMENT EQUALS AND HASHCODE METHOD AUTOMATICALLY -> https://stackabuse.com/guide-to-unit-testing-spring-boot-rest-apis/
-		//Don't use Mockito.when(empRepo.save(newEmp) as it will return null ID in EmployeeController.java -> https://mkyong.com/spring-boot/spring-mockito-unable-to-mock-save-method/ 
-//		Mockito.when(empRepo.save(newEmp)).thenReturn(savedEmp);
-		Mockito.when(empRepo.save(any(Employee.class))).thenReturn(savedEmp);
+		Mockito.when(empRepo.save(newEmp)).thenReturn(savedEmp);
+//		Mockito.when(empRepo.save(any(Employee.class))).thenReturn(savedEmp);
 
 		
 		String url = "/employee";
@@ -117,11 +120,56 @@ class EmployeeControllerTest {
 				.content(objectMapper.writeValueAsString(newEmp))
 				).andExpect(status().isOk())
 				.andExpect(content().json("1"));
-//		String actualJsonResponse = mvcResult.getResponse().getContentAsString();
+	}
+	
+	@Test
+	@DisplayName("Update Employee")
+	public void testUpdateEmployee() throws Exception {
+		Integer empId = 1;
 		
-//		String expectedJsonResponse = "1";
-//		assertEquals(expectedJsonResponse, actualJsonResponse);
-//		System.out.println(actualJsonResponse);
+		Optional<Employee> existingEmp = Optional.of(new Employee(empId,"Rohit","Production","Python"));
+		
+		Employee updateEmp = new Employee(empId,"Rohit Rao","Production","Python");
+		
+		Mockito.when(empRepo.findById(empId)).thenReturn(existingEmp);
+		
+		//Don't use Mockito.when(empRepo.save(newEmp) as it will return null ID in EmployeeController.java -> https://mkyong.com/spring-boot/spring-mockito-unable-to-mock-save-method/ 
+		//Either do as done in testCreateNewEmployee() or implement equals and hashCode in the Employee model
+		//Generated Equals and Hashcode for the Employee model
+		Mockito.when(empRepo.save(updateEmp)).thenReturn(updateEmp);
+		
+		String url = "/employee/"+empId;
+		
+		MvcResult mvcResult = mockMvc.perform(
+				put(url)
+				.contentType("application/json")
+				.content(objectMapper.writeValueAsString(updateEmp))
+				).andExpect(status().isOk()).andReturn();
+		String actualJsonResponse = mvcResult.getResponse().getContentAsString();
+		
+		testReporter.publishEntry("Actual: " + actualJsonResponse);
+
+		String expectedJsonResponse = objectMapper.writeValueAsString(updateEmp);
+		testReporter.publishEntry("Expected: " + expectedJsonResponse);
+
+		assertThat(actualJsonResponse).isEqualToIgnoringWhitespace(expectedJsonResponse);
+	}
+	
+	@Test
+	@DisplayName("Delete Employee")
+	public void testDeleteEmployee() throws Exception {
+		Integer empId = 1;
+		Employee emp = new Employee(empId,"Rohit","Production","Python");
+		
+		Mockito.when(empRepo.findById(1)).thenReturn(Optional.of(emp));
+		
+		Mockito.doNothing().when(empRepo).delete(emp);
+		
+		String url = "/employee/"+empId;
+		
+		mockMvc.perform(delete(url)).andExpect(status().isOk());
+		
+		Mockito.verify(empRepo, times(1)).delete(emp);
 	}
 }
 //
